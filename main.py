@@ -3,37 +3,60 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from sys import exit
+import os
+import csv
+  
+
 
 def input_file(user_input_file=''):
     user_input_file = input("What is the file?[Provide the full file path.] ").replace("\\", "/").strip('""')
     manage_dataframe(user_input_file)
 
-def input_folder(user_input_folder=''):
-    user_input_folder = input("What is the folder?[Provide the full folder path.] ")
+def input_folder(user_input_folder='', user_input_file='', filelist='', f=''):
+    filelist = []
+    user_input_folder = input("What is the folder?[Provide the full folder path.]\n>> ").replace("\\", "/").strip('""')
+    for user_input_file in os.listdir(user_input_folder):
+        if '.' not in user_input_file:
+            f = user_input_folder + '/' + user_input_file
+            filelist.append(f)            
 
-def manage_dataframe(user_input_file, df='', columns='', column_count='', filename=''):
+    manage_dataframe(filelist)
+
+def manage_dataframe(filelist, user_input_file='', df='', columns='', column_count='', 
+                     filename='', infile='', error_message='', file_count=''):
     
-    filename = user_input_file.rsplit('/', 1)[-1]
-    df = pd.read_table(user_input_file, sep="|", keep_default_na=False, index_col=0, skipinitialspace=True)
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    for i in df.columns:
-        if df[i].dtype == 'object':
-            df[i] = df[i].map(str.strip)
-        else:
-            pass
-    column_count = len(df.columns)
+    file_count = 0
+    while True:
+        for user_input_file in filelist:
+            try:
+                print(f"Parsing {user_input_file}")
+                filename = user_input_file.rsplit('/', 1)[-1]
+                user_input_file = user_input_file.replace("\\", "/").strip('""')
+                df = pd.read_table(user_input_file, sep="|", 
+                                skipinitialspace=True,
+                                index_col=[0], 
+                                float_precision='high', 
+                                skip_blank_lines=True,
+                                on_bad_lines='warn',
+                                na_filter=False)
+                df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+                df = df.fillna("unkown")
+                for i in df.columns:
+                    if df[i].dtype == 'object':
+                        df[i] = df[i].map(str.strip)
+                    else:
+                        pass
+                column_count = len(df.columns)
+                #create and write excel
+                print("Writing...")
+                df.to_excel(f"{user_input_file}.xlsx")
+                print("Success!")
+                file_count += 1
 
-    write_excel(df, user_input_file)
-
-
-
-#create and write excel
-def write_excel(df, user_input_file):
-
-    print("Writing...")
-    df.to_excel(f"{user_input_file}.xlsx")
-    print("Succes!")
-
+            except pd.errors.ParserError:
+                error_message = f"Failed on {user_input_file}"
+                print(f"Failed on {user_input_file}")
+        quitter(error_message, file_count)   
 
 
 #function to create and write to pdf
@@ -51,16 +74,15 @@ def write_pdf(df, columns):
 
 
 
-def iterator():
-    if file_count != 0:
-        manage_dataframe()
-
-
 #exit module
-def quitter():
+def quitter(error_message, file_count):
+    if error_message != '':
+        print(f"{file_count} files successfully rendered, {error_message}")
+    else:
+        print(f"All {file_count} files converted successfully!")
     input("Press ANY KEY to exit>> ")
     exit(0)
 
 
 
-input_file()
+input_folder()
