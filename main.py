@@ -11,13 +11,32 @@ def input_file(user_input_file=''):
 def input_folder(user_input_folder=''):
     user_input_folder = input("What is the folder?[Provide the full folder path.] ")
 
-def manage_dataframe(user_input_file, df='', columns=''):
+def manage_dataframe(user_input_file, df='', columns='', column_count='', filename=''):
     
-    df = pd.read_table(user_input_file, sep="|")
-    columns = df.shape
+    filename = user_input_file.rsplit('/', 1)[-1]
+    df = pd.read_table(user_input_file, sep="|", keep_default_na=False, index_col=0, skipinitialspace=True)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    for i in df.columns:
+        if df[i].dtype == 'object':
+            df[i] = df[i].map(str.strip)
+        else:
+            pass
+    column_count = len(df.columns)
 
-    write_pdf(df, columns)
+    write_excel(df, user_input_file)
 
+
+
+#create and write excel
+def write_excel(df, user_input_file):
+
+    print("Writing...")
+    df.to_excel(f"{user_input_file}.xlsx")
+    print("Succes!")
+
+
+
+#function to create and write to pdf
 def write_pdf(df, columns):
     #https://stackoverflow.com/questions/32137396/how-do-i-plot-only-a-table-in-matplotlib
     fig, ax =plt.subplots(figsize=(columns[1] + 3,4))
@@ -29,5 +48,19 @@ def write_pdf(df, columns):
     pp = PdfPages("foo.pdf")
     pp.savefig(fig, bbox_inches='tight')
     pp.close()
+
+
+
+def iterator():
+    if file_count != 0:
+        manage_dataframe()
+
+
+#exit module
+def quitter():
+    input("Press ANY KEY to exit>> ")
+    exit(0)
+
+
 
 input_file()
