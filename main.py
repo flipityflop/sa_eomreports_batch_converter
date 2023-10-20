@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from sys import exit
 import os
-import csv
-  
+
 
 
 def input_file(user_input_file=''):
