@@ -7,13 +7,16 @@ import os
 
 
 
-def input_file(user_input_file=''):
-    user_input_file = input("What is the file?[Provide the full file path.] ").replace("\\", "/").strip('""')
-    manage_dataframe(user_input_file)
+def input_file(user_input_file='', filelist=''):
+    filelist = []
+    user_input_file = input("What is the file? [Provide the full file path.]\n>> ").replace("\\", "/").strip('""')
+    filelist.append(user_input_file)
+    print(filelist)
+    manage_dataframe(filelist)
 
 def input_folder(user_input_folder='', user_input_file='', filelist='', f=''):
     filelist = []
-    user_input_folder = input("What is the folder?[Provide the full folder path.]\n>> ").replace("\\", "/").strip('""')
+    user_input_folder = input("What is the folder? [Provide the full folder path.]\n>> ").replace("\\", "/").strip('""')
     for user_input_file in os.listdir(user_input_folder):
         if '.' not in user_input_file:
             f = user_input_folder + '/' + user_input_file
@@ -22,7 +25,7 @@ def input_folder(user_input_folder='', user_input_file='', filelist='', f=''):
     manage_dataframe(filelist)
 
 def manage_dataframe(filelist, user_input_file='', df='', columns='', column_count='', 
-                     filename='', infile='', error_message='', file_count=''):
+                     filename='', infile='', error_message='', file_count='', error_message_list=[]):
     
     file_count = 0
     while True:
@@ -54,8 +57,9 @@ def manage_dataframe(filelist, user_input_file='', df='', columns='', column_cou
 
             except pd.errors.ParserError:
                 error_message = f"Failed on {user_input_file}"
+                error_message_list.append(error_message)
                 print(f"Failed on {user_input_file}")
-        quitter(error_message, file_count)   
+        quitter(error_message_list, file_count)   
 
 
 #function to create and write to pdf
@@ -74,14 +78,22 @@ def write_pdf(df, columns):
 
 
 #exit module
-def quitter(error_message, file_count):
-    if error_message != '':
-        print(f"{file_count} files successfully rendered, {error_message}")
+def quitter(error_message_list, file_count):
+    if error_message_list != []:
+        print(f"{file_count} files successfully rendered, {error_message_list}")
     else:
         print(f"All {file_count} files converted successfully!")
     input("Press ANY KEY to exit>> ")
     exit(0)
 
+def fileORfolder():
+    choice = input("1. for files or 2. for folders\n>> ")
+    if choice == '1':
+        input_file()
+    elif choice == '2':
+        input_folder()
+    else:
+        print("pick a number")
+        fileORfolder()
 
-
-input_folder()
+fileORfolder()
