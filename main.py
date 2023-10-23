@@ -83,8 +83,8 @@ def quitter(error_message_list, file_count):
         print(f"{file_count} files successfully rendered, {error_message_list}")
     else:
         print(f"All {file_count} files converted successfully!")
-    input("Press ANY KEY to exit>> ")
-    exit(0)
+    input("Press ANY KEY to restart>> ")
+    fileORfolder()
 
 def fileORfolder():
     choice = input("1. for files or 2. for folders\n>> ")
